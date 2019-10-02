@@ -1,0 +1,63 @@
+buildscript {
+    ext {
+        javaEncoding = 'UTF-8'
+        gradleDir = "${rootProject.rootDir}/gradle"
+    }
+
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/"}
+        maven { url "https://repo.spring.io/plugins-release" }
+    }
+
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("io.spring.gradle:dependency-management-plugin:${springGradleDependencyManagementVersion}")
+        classpath("org.projectlombok:lombok:${lombokVersion}")
+        classpath("org.flywaydb:flyway-gradle-plugin:${flywayVersion}")
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/"}
+        maven { url "https://repo.spring.io/plugins-release" }
+    }
+}
+
+def javaProjects = [
+        project(':project-core'),
+        project(':project-interfaces')
+]
+
+List spock = [
+        "org.springframework.boot:spring-boot-starter-test",
+        "org.spockframework:spock-core:$spockVersion",
+        "org.spockframework:spock-spring:$spockVersion",
+        "org.codehaus.groovy:groovy-all:$groovyVersion"
+]
+
+configure(javaProjects) {
+    apply plugin: 'java'
+    apply plugin: 'groovy'
+    apply plugin: 'checkstyle'
+    apply plugin: 'io.spring.dependency-management'
+    apply from: "$gradleDir/checkstyle.gradle"
+
+    sourceCompatibility = 1.11
+
+    [compileJava, compileTestJava]*.options*.encoding = javaEncoding
+
+    tasks.withType(Test) {
+        ignoreFailures = false
+    }
+
+    dependencies {
+        annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+        compile "org.projectlombok:lombok"
+        testCompile spock
+    }
+}
